@@ -31,7 +31,7 @@ GET  /stats/{code}   ─▶ API Gateway ─▶ Lambda(stats)    ─┘
 src/urlshortener/   core.py  db.py  handlers/   # app (stdlib + boto3 only)
 infra/                                          # Terraform (IaC)
 tests/                                          # pytest + moto (no real AWS)
-docs/               adr/  glossary.md  scale-estimate.md
+docs/               adr/  glossary.md  scale-estimate.md  flows.md
 scripts/            package_lambda.py
 ```
 
