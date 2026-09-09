@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "url-shortener"
+version = "0.1.0"
+description = "A learning URL shortener on AWS (Lambda + API Gateway + DynamoDB), built from the System Design Interview book."
+requires-python = ">=3.12"
+# Runtime deps are intentionally empty: the Lambda runtime already ships boto3,
+# and we bundle only our own source (a plain archive_file zip). See ADR notes.
+dependencies = []
+
+[project.optional-dependencies]
+# Local dev + tests. boto3 is provided in Lambda but needed locally; moto mocks
+# DynamoDB in-process so tests never touch real AWS.
+dev = [
+    "boto3>=1.34",
+    "moto[dynamodb]>=5",
+    "pytest>=8",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
