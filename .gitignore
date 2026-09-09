@@ -9,7 +9,7 @@ venv/
 
 # Terraform
 .terraform/
-.terraform.lock.hcl
+# NB: .terraform.lock.hcl is intentionally NOT ignored — commit it to pin provider versions.
 *.tfstate
 *.tfstate.*
 crash.log
