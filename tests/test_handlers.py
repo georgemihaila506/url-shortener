@@ -10,6 +10,7 @@ from urlshortener.core import resolve
 from urlshortener.db import UrlStore
 from urlshortener.handlers import redirect as redirect_handler
 from urlshortener.handlers import shorten as shorten_handler
+from urlshortener.handlers import stats as stats_handler
 
 
 def _event(url, domain="abc.execute-api.eu-north-1.amazonaws.com"):
@@ -66,4 +67,27 @@ def test_redirect_found_returns_302(api_env):
 
 def test_redirect_unknown_code_returns_404(api_env):
     resp = redirect_handler.handler(_path_event("nope999"), None)
+    assert resp["statusCode"] == 404
+
+
+def test_redirect_increments_clicks(api_env):
+    code = json.loads(shorten_handler.handler(_event("https://ex.com/p"), None)["body"])["code"]
+    redirect_handler.handler(_path_event(code), None)
+    redirect_handler.handler(_path_event(code), None)
+    store = UrlStore(os.environ["TABLE_NAME"])
+    assert int(store.get(code)["clicks"]) == 2
+
+
+def test_stats_returns_click_count(api_env):
+    code = json.loads(shorten_handler.handler(_event("https://ex.com/p"), None)["body"])["code"]
+    resp = stats_handler.handler(_path_event(code), None)
+    assert resp["statusCode"] == 200
+    body = json.loads(resp["body"])
+    assert body["code"] == code
+    assert body["long_url"] == "https://ex.com/p"
+    assert body["clicks"] == 0
+
+
+def test_stats_unknown_code_returns_404(api_env):
+    resp = stats_handler.handler(_path_event("nope999"), None)
     assert resp["statusCode"] == 404

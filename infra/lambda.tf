@@ -67,3 +67,18 @@ resource "aws_lambda_function" "redirect" {
     }
   }
 }
+
+resource "aws_lambda_function" "stats" {
+  function_name    = "${var.project}-stats"
+  role             = aws_iam_role.lambda.arn
+  runtime          = "python3.12"
+  handler          = "urlshortener.handlers.stats.handler"
+  filename         = data.archive_file.app.output_path
+  source_code_hash = data.archive_file.app.output_base64sha256
+
+  environment {
+    variables = {
+      TABLE_NAME = aws_dynamodb_table.urls.name
+    }
+  }
+}

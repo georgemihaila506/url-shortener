@@ -79,3 +79,26 @@ resource "aws_lambda_permission" "redirect_apigw" {
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_apigatewayv2_api.http.execution_arn}/*/*"
 }
+
+# --- GET /stats/{code} -------------------------------------------------------
+# Two-segment literal prefix, so it wins over the greedy "GET /{code}" redirect.
+resource "aws_apigatewayv2_integration" "stats" {
+  api_id                 = aws_apigatewayv2_api.http.id
+  integration_type       = "AWS_PROXY"
+  integration_uri        = aws_lambda_function.stats.invoke_arn
+  payload_format_version = "2.0"
+}
+
+resource "aws_apigatewayv2_route" "stats" {
+  api_id    = aws_apigatewayv2_api.http.id
+  route_key = "GET /stats/{code}"
+  target    = "integrations/${aws_apigatewayv2_integration.stats.id}"
+}
+
+resource "aws_lambda_permission" "stats_apigw" {
+  statement_id  = "AllowAPIGatewayInvokeStats"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.stats.function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_apigatewayv2_api.http.execution_arn}/*/*"
+}
