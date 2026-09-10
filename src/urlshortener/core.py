@@ -10,12 +10,14 @@ from __future__ import annotations
 
 import secrets
 import string
+from urllib.parse import urlparse
 
 from .db import CodeExists, UrlStore
 
 ALPHABET = string.ascii_letters + string.digits  # 62 chars → base62
 CODE_LENGTH = 7
 MAX_RETRIES = 5
+MAX_URL_LENGTH = 2048
 
 
 def random_code(length: int = CODE_LENGTH) -> str:
@@ -46,3 +48,27 @@ def resolve(store: UrlStore, code: str) -> str | None:
     """Return the long URL for `code`, or None if unknown."""
     item = store.get(code)
     return item["long_url"] if item else None
+
+
+def validate_url(url: str) -> bool:
+    """YOUR TODO (ADR-0004): is `url` an acceptable target to shorten?
+
+    Return True only for a well-formed URL whose scheme is http or https and that
+    is at most MAX_URL_LENGTH chars; return False for anything else — no scheme
+    (`example.com`), other schemes (`javascript:`, `data:`, `ftp:`), no host, or
+    over-length. This one gate kills the scheme-injection footgun.
+
+    Hints:
+      * `urlparse(url)` gives you `.scheme` (e.g. "https") and `.netloc` (the host).
+      * a valid target has scheme in {"http", "https"} AND a non-empty netloc.
+      * check `len(url)` against MAX_URL_LENGTH too.
+    """
+    if len(url) > MAX_URL_LENGTH:
+        return False
+    
+    parsed_url = urlparse(url)
+    if parsed_url.scheme not in {"http", "https"} or not parsed_url.netloc:
+        return False
+    
+    return True
+    

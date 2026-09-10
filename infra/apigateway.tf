@@ -33,3 +33,25 @@ resource "aws_lambda_permission" "apigw" {
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_apigatewayv2_api.http.execution_arn}/*/*"
 }
+
+# --- POST /shorten -----------------------------------------------------------
+resource "aws_apigatewayv2_integration" "shorten" {
+  api_id                 = aws_apigatewayv2_api.http.id
+  integration_type       = "AWS_PROXY"
+  integration_uri        = aws_lambda_function.shorten.invoke_arn
+  payload_format_version = "2.0"
+}
+
+resource "aws_apigatewayv2_route" "shorten" {
+  api_id    = aws_apigatewayv2_api.http.id
+  route_key = "POST /shorten"
+  target    = "integrations/${aws_apigatewayv2_integration.shorten.id}"
+}
+
+resource "aws_lambda_permission" "shorten_apigw" {
+  statement_id  = "AllowAPIGatewayInvokeShorten"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.shorten.function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_apigatewayv2_api.http.execution_arn}/*/*"
+}
