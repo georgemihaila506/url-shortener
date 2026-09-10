@@ -51,24 +51,15 @@ def resolve(store: UrlStore, code: str) -> str | None:
 
 
 def validate_url(url: str) -> bool:
-    """YOUR TODO (ADR-0004): is `url` an acceptable target to shorten?
+    """Is `url` an acceptable target to shorten? (ADR-0004)
 
-    Return True only for a well-formed URL whose scheme is http or https and that
-    is at most MAX_URL_LENGTH chars; return False for anything else — no scheme
-    (`example.com`), other schemes (`javascript:`, `data:`, `ftp:`), no host, or
-    over-length. This one gate kills the scheme-injection footgun.
-
-    Hints:
-      * `urlparse(url)` gives you `.scheme` (e.g. "https") and `.netloc` (the host).
-      * a valid target has scheme in {"http", "https"} AND a non-empty netloc.
-      * check `len(url)` against MAX_URL_LENGTH too.
+    Accepts only a well-formed http/https URL with a host, at most MAX_URL_LENGTH
+    chars. Everything else is rejected — a missing scheme (`example.com`), another
+    scheme (`javascript:`, `data:`, `ftp:`), a missing host, or an over-length
+    string. That single gate is what stops a `javascript:` URL being served off
+    our own domain (the scheme-injection footgun).
     """
     if len(url) > MAX_URL_LENGTH:
         return False
-    
-    parsed_url = urlparse(url)
-    if parsed_url.scheme not in {"http", "https"} or not parsed_url.netloc:
-        return False
-    
-    return True
-    
+    parsed = urlparse(url)
+    return parsed.scheme in {"http", "https"} and bool(parsed.netloc)
