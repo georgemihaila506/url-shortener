@@ -62,8 +62,12 @@ output "state_bucket" {
 # GitHub. Actions presents a short-lived OIDC token; AWS trusts it if it comes
 # from this repo.
 variable "github_repo" {
-  type    = string
-  default = "georgemihaila506/url-shortener"
+  type = string
+  # Immutable-subject form: owner@<owner-id>/repo@<repo-id>. This account's GitHub
+  # OIDC embeds numeric ids in the `sub` claim (protection against owner/repo
+  # rename or re-creation), so the trust condition must match those ids, not the
+  # plain owner/repo path. Ids are unforgeable, so this is the more secure form.
+  default = "georgemihaila506@37144843/url-shortener@1363127508"
 }
 
 resource "aws_iam_openid_connect_provider" "github" {
