@@ -23,6 +23,14 @@ resource "aws_apigatewayv2_stage" "default" {
   api_id      = aws_apigatewayv2_api.http.id
   name        = "$default"
   auto_deploy = true
+
+  # Stage-wide throttle (a token bucket): burst = bucket size, rate = refill/sec.
+  # Requests over the limit get a 429. Generous enough for normal use; a
+  # concurrent burst will still trip it. (The book's rate-limiter, as config.)
+  default_route_settings {
+    throttling_burst_limit = 20
+    throttling_rate_limit  = 10
+  }
 }
 
 # Let this specific API invoke the Lambda (Lambda denies by default).
